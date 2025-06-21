@@ -1,6 +1,8 @@
 import esbuild from "esbuild";
 import process from "process";
 import builtins from "builtin-modules";
+import fs from "fs";
+import path from "path";
 
 const banner =
 `/*
@@ -11,11 +13,38 @@ if you want to view the source, please visit the github repository of this plugi
 
 const prod = (process.argv[2] === "production");
 
+// CSS minification function
+const minifyCSS = (css) => {
+	return css
+		.replace(/\/\*[\s\S]*?\*\//g, '') // Remove comments
+		.replace(/\s+/g, ' ') // Replace multiple spaces with single space
+		.replace(/;\s*}/g, '}') // Remove semicolon before closing brace
+		.replace(/\s*{\s*/g, '{') // Remove spaces around opening brace
+		.replace(/;\s*/g, ';') // Remove spaces after semicolon
+		.replace(/,\s*/g, ',') // Remove spaces after comma
+		.replace(/:\s*/g, ':') // Remove spaces after colon
+		.trim();
+};
+
+// Build CSS separately
+const buildCSS = async () => {
+	const cssContent = fs.readFileSync('src/styles.css', 'utf8');
+	const minifiedCSS = prod ? minifyCSS(cssContent) : cssContent;
+	
+	// Ensure dist directory exists
+	if (!fs.existsSync('dist')) {
+		fs.mkdirSync('dist');
+	}
+	
+	fs.writeFileSync('dist/styles.css', minifiedCSS);
+	console.log('✓ CSS built successfully');
+};
+
 const context = await esbuild.context({
 	banner: {
 		js: banner,
 	},
-	entryPoints: ["main.ts"],
+	entryPoints: ["src/main.ts"],
 	bundle: true,
 	external: [
 		"obsidian",
@@ -37,13 +66,23 @@ const context = await esbuild.context({
 	logLevel: "info",
 	sourcemap: prod ? false : "inline",
 	treeShaking: true,
-	outfile: "main.js",
+	outfile: "dist/main.js",
 	minify: prod,
+	jsx: "automatic",
+	jsxImportSource: "react",
 });
 
 if (prod) {
 	await context.rebuild();
+	await buildCSS();
 	process.exit(0);
 } else {
 	await context.watch();
+	await buildCSS();
+	
+	// Watch CSS file for changes
+	fs.watchFile('src/styles.css', async () => {
+		console.log('CSS file changed, rebuilding...');
+		await buildCSS();
+	});
 }

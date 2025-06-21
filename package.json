@@ -1,12 +1,14 @@
 {
-	"name": "obsidian-sample-plugin",
+	"name": "md-assistant",
 	"version": "1.0.0",
-	"description": "This is a sample plugin for Obsidian (https://obsidian.md)",
+	"description": "This is a plugin for Obsidian (https://obsidian.md)",
 	"main": "main.js",
 	"scripts": {
 		"dev": "node esbuild.config.mjs",
 		"build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
-		"version": "node version-bump.mjs && git add manifest.json versions.json"
+		"version": "node version-bump.mjs && git add manifest.json versions.json",
+		"try": "cp dist/main.js manifest.json dist/styles.css '/Users/mikdatdogru/Library/Mobile Documents/iCloud~md~obsidian/Documents/Second Mind/.obsidian/plugins/md-assistant'",
+		"build:try": "npm run build && npm run try"
 	},
 	"keywords": [],
 	"author": "",
@@ -20,5 +22,11 @@
 		"obsidian": "latest",
 		"tslib": "2.4.0",
 		"typescript": "4.7.4"
+	},
+	"dependencies": {
+		"@types/react": "^19.1.8",
+		"@types/react-dom": "^19.1.6",
+		"react": "^19.1.0",
+		"react-dom": "^19.1.0"
 	}
 }
